@@ -10,10 +10,14 @@ dotenv.config();
 const app = express();
 const port = Number(process.env.PORT) || 5000;
 
+const allowedOrigins = ["http://localhost:5173", process.env.CLIENT_URL].filter(
+  (origin): origin is string => Boolean(origin),
+);
+
 // Connect to MongoDB
 connectDatabase();
 
-// Allow requests from the React frontend
+// Allow local, production and Vercel preview requests
 app.use(
   cors({
     origin: (origin, callback) => {
