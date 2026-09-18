@@ -10,36 +10,19 @@ dotenv.config();
 const app = express();
 const port = Number(process.env.PORT) || 5000;
 
-const allowedOrigins = ["http://localhost:5173", process.env.CLIENT_URL].filter(
-  (origin): origin is string => Boolean(origin),
-);
-
-// Connect to MongoDB
+// Connect to MongoDB Atlas
 connectDatabase();
 
-// Allow local, production and Vercel preview requests
+// Allow requests from local and deployed frontends
 app.use(
   cors({
-    origin: (origin, callback) => {
-      const isAllowed =
-        !origin ||
-        allowedOrigins.includes(origin) ||
-        origin.endsWith(".vercel.app");
-
-      if (isAllowed) {
-        callback(null, true);
-        return;
-      }
-
-      callback(new Error("Origin is not allowed by CORS"));
-    },
+    origin: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: false,
   }),
 );
 
-// Read JSON request bodies
+// Parse incoming JSON request bodies
 app.use(express.json());
 
 // Health-check endpoint
@@ -50,11 +33,13 @@ app.get("/", (_req: Request, res: Response) => {
   });
 });
 
-// Application routes
+// Authentication routes
 app.use("/api/auth", authRoutes);
+
+// Personalized news routes
 app.use("/api/news", newsRoutes);
 
-// Handle unknown endpoints
+// Handle unknown API endpoints
 app.use((_req: Request, res: Response) => {
   res.status(404).json({
     success: false,
@@ -62,7 +47,7 @@ app.use((_req: Request, res: Response) => {
   });
 });
 
-// Handle unexpected errors
+// Handle unexpected server errors
 app.use((error: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error("Server error:", error);
 
