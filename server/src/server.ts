@@ -16,9 +16,22 @@ connectDatabase();
 // Allow requests from the React frontend
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: (origin, callback) => {
+      const isAllowed =
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        origin.endsWith(".vercel.app");
+
+      if (isAllowed) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error("Origin is not allowed by CORS"));
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: false,
   }),
 );
 
